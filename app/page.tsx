@@ -10,10 +10,25 @@ import { Badge } from "@/components/ui/badge"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Progress } from "@/components/ui/progress"
-import { Wallet, Bitcoin, TrendingUp, AlertTriangle, RefreshCw, DollarSign, Shield, Activity } from "lucide-react"
+import {
+  Wallet,
+  Bitcoin,
+  TrendingUp,
+  AlertTriangle,
+  RefreshCw,
+  DollarSign,
+  Shield,
+  Brain,
+  Zap,
+  Globe,
+  Users,
+  BarChart3,
+  CheckCircle,
+} from "lucide-react"
 import { ThemeProvider } from "@/components/theme-provider"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { Watermark } from "@/components/watermark"
+import { AIRiskAssessment } from "@/components/ai-risk-assessment"
 
 // Mock data and types
 interface Loan {
@@ -26,6 +41,7 @@ interface Loan {
   interestRate: number
   dueDate: string
   status: "active" | "repaid" | "liquidated"
+  riskScore?: number
 }
 
 interface WalletInfo {
@@ -55,16 +71,16 @@ export default function BitLoanApp() {
   const [selectedToken, setSelectedToken] = useState("")
   const [repayAmount, setRepayAmount] = useState("")
   const [loading, setLoading] = useState(false)
+  const [currentRiskAssessment, setCurrentRiskAssessment] = useState<any>(null)
 
   // Mock wallet connection
   const connectWallet = async (walletType: "plug" | "stoic") => {
     setLoading(true)
-    // Simulate connection delay
     await new Promise((resolve) => setTimeout(resolve, 1500))
 
     setWallet({
       address: `${walletType === "plug" ? "plug" : "stoic"}-wallet-${Math.random().toString(36).substr(2, 8)}`,
-      balance: 2.5, // Mock ckBTC balance
+      balance: 2.5,
       connected: true,
       type: walletType,
     })
@@ -79,16 +95,15 @@ export default function BitLoanApp() {
       type: null,
     })
     setLoans([])
+    setCurrentRiskAssessment(null)
   }
 
-  // Mock deposit collateral
   const depositCollateral = async () => {
     if (!depositAmount || !wallet.connected) return
 
     setLoading(true)
     await new Promise((resolve) => setTimeout(resolve, 1000))
 
-    // Update wallet balance
     setWallet((prev) => ({
       ...prev,
       balance: prev.balance - Number.parseFloat(depositAmount),
@@ -98,7 +113,6 @@ export default function BitLoanApp() {
     setLoading(false)
   }
 
-  // Mock borrow tokens
   const borrowTokens = async () => {
     if (!borrowAmount || !selectedToken || !wallet.connected) return
 
@@ -110,11 +124,12 @@ export default function BitLoanApp() {
       collateralAmount: Number.parseFloat(depositAmount) || 1.0,
       borrowedAmount: Number.parseFloat(borrowAmount),
       borrowedToken: selectedToken,
-      collateralRatio: 150, // Mock ratio
+      collateralRatio: currentRiskAssessment?.personalizedCollateralRatio || 150,
       liquidationThreshold: 120,
-      interestRate: 5.5,
+      interestRate: currentRiskAssessment?.interestRate || 5.5,
       dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
       status: "active",
+      riskScore: currentRiskAssessment?.riskScore,
     }
 
     setLoans((prev) => [...prev, newLoan])
@@ -123,7 +138,6 @@ export default function BitLoanApp() {
     setLoading(false)
   }
 
-  // Mock repay loan
   const repayLoan = async (loanId: string) => {
     if (!repayAmount) return
 
@@ -157,10 +171,11 @@ export default function BitLoanApp() {
                 <Bitcoin className="h-8 w-8 text-orange-500" />
                 BitLoan
               </h1>
-              <p className="text-gray-600 dark:text-gray-300 mt-1">DeFi Lending on Internet Computer Protocol</p>
+              <p className="text-gray-600 dark:text-gray-300 mt-1">
+                AI-Powered DeFi Lending on Internet Computer Protocol
+              </p>
             </div>
 
-            {/* Wallet Connection and Theme Toggle */}
             <div className="flex flex-col sm:flex-row gap-2 items-end sm:items-center">
               <ThemeToggle />
               {!wallet.connected ? (
@@ -201,58 +216,289 @@ export default function BitLoanApp() {
             </div>
           </div>
 
-          {/* Rest of the app content remains the same */}
           {!wallet.connected ? (
-            /* Welcome Screen */
-            <div className="text-center py-16">
-              <div className="max-w-2xl mx-auto">
-                <Bitcoin className="h-16 w-16 text-orange-500 mx-auto mb-6" />
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Welcome to BitLoan</h2>
-                <p className="text-gray-600 dark:text-gray-300 mb-8">
-                  Connect your ICP wallet to start lending and borrowing with ckBTC collateral
-                </p>
+            /* Enhanced Landing Page */
+            <div className="space-y-16">
+              {/* Hero Section */}
+              <div className="text-center py-16">
+                <div className="max-w-4xl mx-auto">
+                  <div className="flex justify-center mb-6">
+                    <div className="relative">
+                      <Bitcoin className="h-20 w-20 text-orange-500" />
+                      <Brain className="h-8 w-8 text-purple-500 absolute -top-2 -right-2 bg-white dark:bg-gray-900 rounded-full p-1" />
+                    </div>
+                  </div>
+                  <h2 className="text-4xl md:text-6xl font-bold text-gray-900 dark:text-white mb-6">
+                    The Future of{" "}
+                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">
+                      AI-Powered
+                    </span>{" "}
+                    DeFi Lending
+                  </h2>
+                  <p className="text-xl text-gray-600 dark:text-gray-300 mb-8 leading-relaxed">
+                    BitLoan revolutionizes decentralized lending by combining cutting-edge AI risk assessment with the
+                    security and transparency of the Internet Computer Protocol. Get personalized loan terms, real-time
+                    risk monitoring, and competitive rates.
+                  </p>
 
-                <div className="grid md:grid-cols-3 gap-6 mt-12">
-                  <Card>
-                    <CardHeader>
-                      <Shield className="h-8 w-8 text-blue-500 mx-auto" />
-                      <CardTitle className="text-lg">Secure</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-sm text-gray-600 dark:text-gray-300">
-                        Built on Internet Computer Protocol with robust smart contracts
-                      </p>
-                    </CardContent>
-                  </Card>
+                  <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
+                    <Button
+                      size="lg"
+                      className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                    >
+                      <Wallet className="h-5 w-5 mr-2" />
+                      Connect Wallet to Start
+                    </Button>
+                    <Button size="lg" variant="outline">
+                      <BarChart3 className="h-5 w-5 mr-2" />
+                      View Analytics
+                    </Button>
+                  </div>
 
-                  <Card>
-                    <CardHeader>
-                      <TrendingUp className="h-8 w-8 text-green-500 mx-auto" />
-                      <CardTitle className="text-lg">Competitive Rates</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-sm text-gray-600 dark:text-gray-300">
-                        Enjoy competitive interest rates on your crypto loans
-                      </p>
-                    </CardContent>
-                  </Card>
-
-                  <Card>
-                    <CardHeader>
-                      <Activity className="h-8 w-8 text-purple-500 mx-auto" />
-                      <CardTitle className="text-lg">Real-time</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-sm text-gray-600 dark:text-gray-300">
-                        Monitor your positions with real-time collateral tracking
-                      </p>
-                    </CardContent>
-                  </Card>
+                  {/* Key Stats */}
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mt-12">
+                    <div className="text-center">
+                      <div className="text-3xl font-bold text-blue-600">$2.5M+</div>
+                      <div className="text-sm text-gray-600 dark:text-gray-300">Total Value Locked</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-3xl font-bold text-green-600">1,247</div>
+                      <div className="text-sm text-gray-600 dark:text-gray-300">Active Loans</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-3xl font-bold text-purple-600">98.5%</div>
+                      <div className="text-sm text-gray-600 dark:text-gray-300">AI Accuracy Rate</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-3xl font-bold text-orange-600">3.2%</div>
+                      <div className="text-sm text-gray-600 dark:text-gray-300">Average Interest Rate</div>
+                    </div>
+                  </div>
                 </div>
+              </div>
+
+              {/* Features Section */}
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <Card className="border-2 border-blue-100 dark:border-blue-900">
+                  <CardHeader>
+                    <Brain className="h-12 w-12 text-purple-500 mx-auto mb-4" />
+                    <CardTitle className="text-xl text-center">AI-Powered Risk Assessment</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-gray-600 dark:text-gray-300 text-center">
+                      Our advanced AI analyzes on-chain data, market conditions, and user behavior to provide
+                      personalized risk assessments and loan terms in real-time.
+                    </p>
+                    <div className="mt-4 space-y-2">
+                      <div className="flex items-center gap-2 text-sm">
+                        <CheckCircle className="h-4 w-4 text-green-500" />
+                        <span>Real-time risk scoring</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm">
+                        <CheckCircle className="h-4 w-4 text-green-500" />
+                        <span>Personalized collateral ratios</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm">
+                        <CheckCircle className="h-4 w-4 text-green-500" />
+                        <span>Dynamic interest rates</span>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="border-2 border-green-100 dark:border-green-900">
+                  <CardHeader>
+                    <Shield className="h-12 w-12 text-green-500 mx-auto mb-4" />
+                    <CardTitle className="text-xl text-center">Secure & Transparent</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-gray-600 dark:text-gray-300 text-center">
+                      Built on Internet Computer Protocol with robust smart contracts, multi-signature security, and
+                      complete transparency of all transactions and risk assessments.
+                    </p>
+                    <div className="mt-4 space-y-2">
+                      <div className="flex items-center gap-2 text-sm">
+                        <CheckCircle className="h-4 w-4 text-green-500" />
+                        <span>ICP blockchain security</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm">
+                        <CheckCircle className="h-4 w-4 text-green-500" />
+                        <span>Audited smart contracts</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm">
+                        <CheckCircle className="h-4 w-4 text-green-500" />
+                        <span>Full transparency</span>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="border-2 border-orange-100 dark:border-orange-900">
+                  <CardHeader>
+                    <TrendingUp className="h-12 w-12 text-orange-500 mx-auto mb-4" />
+                    <CardTitle className="text-xl text-center">Competitive Rates</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-gray-600 dark:text-gray-300 text-center">
+                      AI optimization ensures you get the best possible interest rates based on your risk profile,
+                      market conditions, and collateral quality.
+                    </p>
+                    <div className="mt-4 space-y-2">
+                      <div className="flex items-center gap-2 text-sm">
+                        <CheckCircle className="h-4 w-4 text-green-500" />
+                        <span>Starting from 2.5% APR</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm">
+                        <CheckCircle className="h-4 w-4 text-green-500" />
+                        <span>No hidden fees</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm">
+                        <CheckCircle className="h-4 w-4 text-green-500" />
+                        <span>Flexible repayment terms</span>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="border-2 border-purple-100 dark:border-purple-900">
+                  <CardHeader>
+                    <Zap className="h-12 w-12 text-purple-500 mx-auto mb-4" />
+                    <CardTitle className="text-xl text-center">Instant Processing</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-gray-600 dark:text-gray-300 text-center">
+                      Lightning-fast loan processing powered by ICP's high-performance blockchain. Get your funds in
+                      minutes, not days.
+                    </p>
+                    <div className="mt-4 space-y-2">
+                      <div className="flex items-center gap-2 text-sm">
+                        <CheckCircle className="h-4 w-4 text-green-500" />
+                        <span>Sub-second finality</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm">
+                        <CheckCircle className="h-4 w-4 text-green-500" />
+                        <span>Automated processing</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm">
+                        <CheckCircle className="h-4 w-4 text-green-500" />
+                        <span>24/7 availability</span>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="border-2 border-indigo-100 dark:border-indigo-900">
+                  <CardHeader>
+                    <Globe className="h-12 w-12 text-indigo-500 mx-auto mb-4" />
+                    <CardTitle className="text-xl text-center">Global Access</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-gray-600 dark:text-gray-300 text-center">
+                      Access DeFi lending from anywhere in the world. No KYC required, just connect your wallet and
+                      start borrowing or lending.
+                    </p>
+                    <div className="mt-4 space-y-2">
+                      <div className="flex items-center gap-2 text-sm">
+                        <CheckCircle className="h-4 w-4 text-green-500" />
+                        <span>No geographical restrictions</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm">
+                        <CheckCircle className="h-4 w-4 text-green-500" />
+                        <span>Multiple wallet support</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm">
+                        <CheckCircle className="h-4 w-4 text-green-500" />
+                        <span>Cross-chain compatibility</span>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="border-2 border-teal-100 dark:border-teal-900">
+                  <CardHeader>
+                    <Users className="h-12 w-12 text-teal-500 mx-auto mb-4" />
+                    <CardTitle className="text-xl text-center">Community Driven</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-gray-600 dark:text-gray-300 text-center">
+                      Join a thriving community of DeFi enthusiasts. Participate in governance, earn rewards, and help
+                      shape the future of decentralized lending.
+                    </p>
+                    <div className="mt-4 space-y-2">
+                      <div className="flex items-center gap-2 text-sm">
+                        <CheckCircle className="h-4 w-4 text-green-500" />
+                        <span>Governance participation</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm">
+                        <CheckCircle className="h-4 w-4 text-green-500" />
+                        <span>Community rewards</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm">
+                        <CheckCircle className="h-4 w-4 text-green-500" />
+                        <span>24/7 support</span>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* How It Works */}
+              <div className="text-center">
+                <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-12">How BitLoan Works</h2>
+                <div className="grid md:grid-cols-4 gap-8">
+                  <div className="space-y-4">
+                    <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center mx-auto">
+                      <span className="text-2xl font-bold text-blue-600">1</span>
+                    </div>
+                    <h3 className="font-semibold">Connect Wallet</h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-300">
+                      Connect your ICP wallet (Plug or Stoic) to get started
+                    </p>
+                  </div>
+                  <div className="space-y-4">
+                    <div className="w-16 h-16 bg-purple-100 dark:bg-purple-900 rounded-full flex items-center justify-center mx-auto">
+                      <span className="text-2xl font-bold text-purple-600">2</span>
+                    </div>
+                    <h3 className="font-semibold">AI Risk Assessment</h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-300">
+                      Our AI analyzes your profile and provides personalized terms
+                    </p>
+                  </div>
+                  <div className="space-y-4">
+                    <div className="w-16 h-16 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center mx-auto">
+                      <span className="text-2xl font-bold text-green-600">3</span>
+                    </div>
+                    <h3 className="font-semibold">Deposit Collateral</h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-300">
+                      Deposit ckBTC as collateral to secure your loan
+                    </p>
+                  </div>
+                  <div className="space-y-4">
+                    <div className="w-16 h-16 bg-orange-100 dark:bg-orange-900 rounded-full flex items-center justify-center mx-auto">
+                      <span className="text-2xl font-bold text-orange-600">4</span>
+                    </div>
+                    <h3 className="font-semibold">Borrow & Repay</h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-300">
+                      Borrow tokens instantly and repay on flexible terms
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* CTA Section */}
+              <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-8 text-center text-white">
+                <h2 className="text-3xl font-bold mb-4">Ready to Experience AI-Powered DeFi?</h2>
+                <p className="text-xl mb-6 opacity-90">
+                  Join thousands of users who trust BitLoan for their DeFi lending needs
+                </p>
+                <Button size="lg" variant="secondary" className="bg-white text-blue-600 hover:bg-gray-100">
+                  <Wallet className="h-5 w-5 mr-2" />
+                  Connect Wallet Now
+                </Button>
               </div>
             </div>
           ) : (
-            /* Main App - all the existing tabs content remains exactly the same */
+            /* Main App - Enhanced with AI Risk Assessment */
             <Tabs defaultValue="dashboard" className="space-y-6">
               <TabsList className="grid w-full grid-cols-4">
                 <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
@@ -295,17 +541,14 @@ export default function BitLoanApp() {
 
                   <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-sm font-medium">Avg. Collateral Ratio</CardTitle>
-                      <TrendingUp className="h-4 w-4 text-blue-500" />
+                      <CardTitle className="text-sm font-medium">AI Risk Score</CardTitle>
+                      <Brain className="h-4 w-4 text-purple-500" />
                     </CardHeader>
                     <CardContent>
                       <div className="text-2xl font-bold">
-                        {loans.length > 0
-                          ? (loans.reduce((sum, loan) => sum + loan.collateralRatio, 0) / loans.length).toFixed(0)
-                          : 0}
-                        %
+                        {loans.length > 0 && loans[0].riskScore ? `${loans[0].riskScore}/100` : "N/A"}
                       </div>
-                      <p className="text-xs text-muted-foreground">Liquidation at 120%</p>
+                      <p className="text-xs text-muted-foreground">AI-powered assessment</p>
                     </CardContent>
                   </Card>
                 </div>
@@ -314,7 +557,7 @@ export default function BitLoanApp() {
                 <Card>
                   <CardHeader>
                     <CardTitle>Active Loans</CardTitle>
-                    <CardDescription>Monitor your loan positions and collateral ratios</CardDescription>
+                    <CardDescription>Monitor your loan positions and AI risk assessments</CardDescription>
                   </CardHeader>
                   <CardContent>
                     {loans.length === 0 ? (
@@ -335,6 +578,12 @@ export default function BitLoanApp() {
                                 <p className="text-sm text-gray-600 dark:text-gray-300">
                                   Collateral: {loan.collateralAmount.toFixed(4)} ckBTC
                                 </p>
+                                {loan.riskScore && (
+                                  <div className="flex items-center gap-2 mt-1">
+                                    <Brain className="h-3 w-3 text-purple-500" />
+                                    <span className="text-xs text-purple-600">AI Risk Score: {loan.riskScore}/100</span>
+                                  </div>
+                                )}
                               </div>
                               <Badge variant={loan.status === "active" ? "default" : "secondary"}>{loan.status}</Badge>
                             </div>
@@ -434,12 +683,12 @@ export default function BitLoanApp() {
                 </Card>
               </TabsContent>
 
-              {/* Borrow Tab */}
-              <TabsContent value="borrow">
+              {/* Borrow Tab - Enhanced with AI Risk Assessment */}
+              <TabsContent value="borrow" className="space-y-6">
                 <Card>
                   <CardHeader>
                     <CardTitle>Borrow Tokens</CardTitle>
-                    <CardDescription>Borrow against your ckBTC collateral</CardDescription>
+                    <CardDescription>Borrow against your ckBTC collateral with AI-optimized terms</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="space-y-2">
@@ -469,9 +718,9 @@ export default function BitLoanApp() {
                       />
                     </div>
 
-                    {selectedToken && borrowAmount && (
+                    {selectedToken && borrowAmount && depositAmount && (
                       <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
-                        <h4 className="font-medium mb-2">Loan Summary</h4>
+                        <h4 className="font-medium mb-2">Standard Loan Terms</h4>
                         <div className="space-y-1 text-sm">
                           <div className="flex justify-between">
                             <span>Borrow Amount:</span>
@@ -480,11 +729,11 @@ export default function BitLoanApp() {
                             </span>
                           </div>
                           <div className="flex justify-between">
-                            <span>Interest Rate:</span>
+                            <span>Standard Interest Rate:</span>
                             <span>5.5% APR</span>
                           </div>
                           <div className="flex justify-between">
-                            <span>Collateral Ratio:</span>
+                            <span>Standard Collateral Ratio:</span>
                             <span>150%</span>
                           </div>
                           <div className="flex justify-between">
@@ -511,6 +760,16 @@ export default function BitLoanApp() {
                     </Button>
                   </CardContent>
                 </Card>
+
+                {/* AI Risk Assessment */}
+                {selectedToken && borrowAmount && depositAmount && (
+                  <AIRiskAssessment
+                    walletAddress={wallet.address}
+                    collateralAmount={Number.parseFloat(depositAmount)}
+                    requestedAmount={Number.parseFloat(borrowAmount)}
+                    onAssessmentComplete={setCurrentRiskAssessment}
+                  />
+                )}
               </TabsContent>
 
               {/* Repay Tab */}
@@ -539,6 +798,14 @@ export default function BitLoanApp() {
                                   <p className="text-sm text-gray-600 dark:text-gray-300">
                                     Collateral: {loan.collateralAmount.toFixed(4)} ckBTC
                                   </p>
+                                  {loan.riskScore && (
+                                    <div className="flex items-center gap-2 mt-1">
+                                      <Brain className="h-3 w-3 text-purple-500" />
+                                      <span className="text-xs text-purple-600">
+                                        AI Risk Score: {loan.riskScore}/100
+                                      </span>
+                                    </div>
+                                  )}
                                 </div>
                                 <Badge>Active</Badge>
                               </div>
