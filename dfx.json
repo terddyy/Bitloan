@@ -1,0 +1,41 @@
+{
+  "canisters": {
+    "bitloan_backend": {
+      "type": "motoko",
+      "main": "src/bitloan_backend/main.mo"
+    },
+    "bitloan_frontend": {
+      "type": "assets",
+      "dependencies": [
+        "bitloan_backend"
+      ],
+      "frontend": {
+        "entrypoint": "build/index.html"
+      },
+      "source": [
+        "build/"
+      ],
+      "assets": {
+        "directories": [
+          {
+            "path": "build",
+            "access": "public"
+          }
+        ]
+      }
+    }
+  },
+  "defaults": {
+    "build": {
+      "packtool": "npm run build",
+      "args": ""
+    }
+  },
+  "networks": {
+    "local": {
+      "bind": "127.0.0.1:8000",
+      "type": "ephemeral"
+    }
+  },
+  "version": 1
+} 
